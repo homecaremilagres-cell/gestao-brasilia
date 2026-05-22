@@ -150,31 +150,60 @@ with aba_atendimento:
         else:
             st.info("Nenhum paciente do tipo 'AD' encontrado.")
 
-    # --- SEÇÃO DE TABELAS DESTRINCHADAS FIXAS (Sem Rolagem Lateral) ---
+    # --- SEÇÃO DE TABELAS DESTRINCHADAS COMPACTAS (image_4f6b09.png corrigida) ---
     st.markdown("<br><hr>", unsafe_allow_html=True)
-    st.markdown("<h3 style='text-align: center; margin-top: 15px; margin-bottom: 20px;'>📋 Detalhe de Pacientes Ativos por Categoria</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='text-align: center; margin-top: 15px; margin-bottom: 5px;'>📋 Detalhe de Pacientes Ativos por Categoria</h3>", unsafe_allow_html=True)
     
-    # Adicionando um espaçamento maior entre as duas colunas de tabelas
+    # Injeção de estilo cirúrgico para ajustar o st.dataframe interno
+    st.html(
+        """
+        <style>
+        /* Força o texto longo dentro do st.dataframe a quebrar linha e remove o scroll lateral */
+        [data-testid="stDataFrame"] [data-testid="stTable"] td, 
+        [data-testid="stDataFrame"] div, 
+        [data-testid="stDataFrame"] data-grid .cell-contents {
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            line-height: 1.2 !important;
+        }
+        </style>
+        """
+    )
+    
     col_t1, col_vazio, col_t2 = st.columns([1, 0.08, 1])
     colunas_exibicao = ['Paciente', 'Operadora', 'Tipo de Atendimento']
     
     with col_t1:
         st.markdown("<p class='titulo-compacto'>🔵 Internação Domiciliar (ID)</p>", unsafe_allow_html=True)
+        # Força um espaço em branco real de 15px entre o título e a tabela
+        st.html("<div style='height: 15px;'></div>")
+        
         if not df_id.empty:
             colunas_validas_id = [col for col in colunas_exibicao if col in df_id.columns]
             df_id_exibir = df_id[colunas_validas_id] if colunas_validas_id else df_id
-            # st.table remove o scroll lateral e força a quebra de texto
-            st.table(df_id_exibir.reset_index(drop=True))
+            
+            st.dataframe(
+                df_id_exibir.reset_index(drop=True), 
+                use_container_width=True, 
+                hide_index=True
+            )
         else:
             st.info("Não há pacientes ID ativos.")
             
     with col_t2:
         st.markdown("<p class='titulo-compacto'>🟢 Atendimento Domiciliar (AD)</p>", unsafe_allow_html=True)
+        # Força um espaço em branco real de 15px entre o título e a tabela
+        st.html("<div style='height: 15px;'></div>")
+        
         if not df_ad.empty:
             colunas_validas_add = [col for col in colunas_exibicao if col in df_ad.columns]
             df_ad_exibir = df_ad[colunas_validas_add] if colunas_validas_add else df_ad
-            # st.table remove o scroll lateral e força a quebra de texto
-            st.table(df_ad_exibir.reset_index(drop=True))
+            
+            st.dataframe(
+                df_ad_exibir.reset_index(drop=True), 
+                use_container_width=True, 
+                hide_index=True
+            )
         else:
             st.info("Não há pacientes AD ativos.")
 
