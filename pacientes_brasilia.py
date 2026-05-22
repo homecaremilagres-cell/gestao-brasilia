@@ -42,9 +42,10 @@ GID_ADMISSAO = "0"
 GID_ATENDIMENTO = "967937234"   
 GID_ALTA = "1201607203"          
 
+# CORRIGIDO DE VEZ: Todas as variáveis usando seus respectivos GIDs dentro das chaves!
 LINK_ADMISSAO = f"{BASE_URL}&gid={GID_ADMISSAO}"
 LINK_ATENDIMENTO = f"{BASE_URL}&gid={GID_ATENDIMENTO}"
-LINK_ALTA = f"{BASE_URL}&gid={LINK_ALTA}"
+LINK_ALTA = f"{BASE_URL}&gid={GID_ALTA}"
 
 @st.cache_data(ttl=10)
 def carregar_dados(link_aba):
@@ -74,7 +75,7 @@ total_ad = len(df_ad)
 total_geral = len(df_base_atendimento)
 
 # ==============================================================================
-# 4. CABEÇALHO PRINCIPAL CENTRALIZADO (image_4f0576.png)
+# 4. CABEÇALHO PRINCIPAL CENTRALIZADO
 # ==============================================================================
 st.markdown("<h1 style='text-align: center;'>🏥 Painel Integrado de Gestão Hospitalar</h1>", unsafe_allow_html=True)
 st.markdown("<h3 style='text-align: center;'>📍 Filial Atual: <b>HM - Brasília</b></h3>", unsafe_allow_html=True)
@@ -110,12 +111,11 @@ with aba_atendimento:
             contagem_id = df_id['Operadora'].value_counts().reset_index()
             contagem_id.columns = ['Operadora', 'Quantidade']
             
-            # Título centralizado direto na configuração do gráfico Plotly
             fig_id = px.bar(contagem_id, x='Operadora', y='Quantidade', text='Quantidade',
                             title="Total ID por Operadora", color_discrete_sequence=['#0055ff'])
             fig_id.update_traces(textposition='outside')
             fig_id.update_layout(
-                title_x=0.5, # Centraliza o título do gráfico
+                title_x=0.5, 
                 xaxis_tickangle=-90, 
                 margin=dict(l=20, r=20, t=40, b=20), 
                 height=400
@@ -129,12 +129,11 @@ with aba_atendimento:
             contagem_ad = df_ad['Operadora'].value_counts().reset_index()
             contagem_ad.columns = ['Operadora', 'Quantidade']
             
-            # Título centralizado direto na configuração do gráfico Plotly
             fig_ad = px.bar(contagem_ad, x='Operadora', y='Quantidade', text='Quantidade',
                             title="Total AD por Operadora", color_discrete_sequence=['#00cc99'])
             fig_ad.update_traces(textposition='outside')
             fig_ad.update_layout(
-                title_x=0.5, # Centraliza o título do gráfico
+                title_x=0.5, 
                 xaxis_tickangle=-90, 
                 margin=dict(l=20, r=20, t=40, b=20), 
                 height=400
@@ -143,7 +142,7 @@ with aba_atendimento:
         else:
             st.info("Nenhum paciente do tipo 'AD' encontrado.")
 
-    # --- SEÇÃO DE TABELAS DESTRINCHADAS COMPACTAS (image_4f0919.jpg) ---
+    # --- SEÇÃO DE TABELAS DESTRINCHADAS COMPACTAS ---
     st.markdown("---")
     st.markdown("<h3 style='text-align: center;'>📋 Detalhe de Pacientes Ativos por Categoria</h3>", unsafe_allow_html=True)
     
@@ -219,7 +218,7 @@ with aba_resumo:
             'Total Pacientes': tabela_resumo['Total Pacientes'].sum()
         }])
         
-        tabela_final = pd.concat([tabela_resumo, table_total if 'table_total' in locals() else linha_total], ignore_index=True)
+        tabela_final = pd.concat([tabela_resumo, linha_total], ignore_index=True)
         st.dataframe(tabela_final, use_container_width=True)
     else:
         st.info("Sem dados de atendimento para consolidar o resumo de operadoras.")
