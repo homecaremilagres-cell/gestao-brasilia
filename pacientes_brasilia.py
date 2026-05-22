@@ -21,9 +21,10 @@ GID_ADMISSAO = "0"
 GID_ATENDIMENTO = "967937234"   
 GID_ALTA = "1201607203"          
 
+# CORRIGIDO: Agora usando a variável correta (GID_ATENDIMENTO) dentro das chaves!
 LINK_ADMISSAO = f"{BASE_URL}&gid={GID_ADMISSAO}"
-LINK_ATENDIMENTO = f"{BASE_URL}&gid={LINK_ATENDIMENTO}"
-LINK_ALTA = f"{BASE_URL}&gid={LINK_ALTA}"
+LINK_ATENDIMENTO = f"{BASE_URL}&gid={GID_ATENDIMENTO}"
+LINK_ALTA = f"{BASE_URL}&gid={GID_ALTA}"
 
 @st.cache_data(ttl=10)
 def carregar_dados(link_aba):
@@ -112,12 +113,10 @@ with aba_atendimento:
         else:
             st.info("Nenhum paciente do tipo 'AD' encontrado.")
 
-    # --- NOVA SEÇÃO DE TABELAS DESTRINCHADAS ---
     st.markdown("---")
     st.markdown("### 📋 Detalhe de Pacientes Ativos por Categoria")
     
     col_t1, col_t2 = st.columns(2)
-    
     colunas_exibicao = ['Paciente', 'Operadora', 'Tipo de Atendimento']
     
     with col_t1:
