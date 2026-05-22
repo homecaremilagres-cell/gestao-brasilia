@@ -12,22 +12,26 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Injeção de CSS para diminuir as fontes das tabelas e títulos específicos
+# Injeção de CSS para sumir com scrolls e ajustar o tamanho das fontes
 st.html(
     """
     <style>
-    /* Diminui o tamanho do texto dentro das tabelas do Streamlit */
-    [data-testid="stDataFrame"] table, 
-    [data-testid="stDataFrame"] div, 
-    [data-testid="stDataFrame"] data-grid {
-        font-size: 12px !important;
+    /* Diminui e ajusta o texto de tabelas estáticas para evitar quebras feias */
+    .stTable table {
+        font-size: 11px !important;
+        width: 100% !important;
     }
-    /* Estilização compacta para títulos secundários */
+    .stTable th, .stTable td {
+        padding: 4px 6px !important;
+        white-space: normal !important; /* Força o texto longo a quebrar linha e não esticar */
+    }
+    /* Estilização compacta para títulos secundários com espaçamento */
     .titulo-compacto {
         font-size: 18px !important;
         font-weight: bold;
         text-align: center;
-        margin-bottom: 10px;
+        margin-top: 15px;
+        margin-bottom: 15px;
     }
     </style>
     """
@@ -42,7 +46,6 @@ GID_ADMISSAO = "0"
 GID_ATENDIMENTO = "967937234"   
 GID_ALTA = "1201607203"          
 
-# CORRIGIDO DE VEZ: Todas as variáveis usando seus respectivos GIDs dentro das chaves!
 LINK_ADMISSAO = f"{BASE_URL}&gid={GID_ADMISSAO}"
 LINK_ATENDIMENTO = f"{BASE_URL}&gid={GID_ATENDIMENTO}"
 LINK_ALTA = f"{BASE_URL}&gid={GID_ALTA}"
@@ -75,10 +78,10 @@ total_ad = len(df_ad)
 total_geral = len(df_base_atendimento)
 
 # ==============================================================================
-# 4. CABEÇALHO PRINCIPAL CENTRALIZADO
+# 4. CABEÇALHO PRINCIPAL CENTRALIZADO COM ESPAÇAMENTO ADICIONAL
 # ==============================================================================
-st.markdown("<h1 style='text-align: center;'>🏥 Painel Integrado de Gestão Hospitalar</h1>", unsafe_allow_html=True)
-st.markdown("<h3 style='text-align: center;'>📍 Filial Atual: <b>HM - Brasília</b></h3>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; margin-top: 10px; margin-bottom: 5px;'>🏥 Painel Integrado de Gestão Hospitalar</h1>", unsafe_allow_html=True)
+st.markdown("<h3 style='text-align: center; margin-bottom: 25px;'>📍 Filial Atual: <b>HM - Brasília</b></h3>", unsafe_allow_html=True)
 st.markdown("---")
 
 # ==============================================================================
@@ -101,8 +104,9 @@ with aba_atendimento:
         st.markdown("<h5 style='text-align: center;'>Atendimento (AD)</h5>", unsafe_allow_html=True)
         st.markdown(f"<h2 style='text-align: center;'>{total_ad}</h2>", unsafe_allow_html=True)
         
+    st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("---")
-    st.markdown("<h3 style='text-align: center;'>Análise por Operadora</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='text-align: center; margin-top: 15px; margin-bottom: 15px;'>Análise por Operadora</h3>", unsafe_allow_html=True)
     
     col_g1, col_g2 = st.columns(2)
     
@@ -113,11 +117,13 @@ with aba_atendimento:
             
             fig_id = px.bar(contagem_id, x='Operadora', y='Quantidade', text='Quantidade',
                             title="Total ID por Operadora", color_discrete_sequence=['#0055ff'])
-            fig_id.update_traces(textposition='outside')
+            # cliponaxis=False impede que o número do topo seja cortado
+            fig_id.update_traces(textposition='outside', cliponaxis=False)
             fig_id.update_layout(
                 title_x=0.5, 
                 xaxis_tickangle=-90, 
-                margin=dict(l=20, r=20, t=40, b=20), 
+                yaxis=dict(range=[0, contagem_id['Quantidade'].max() * 1.15]), # Dá folga de 15% no topo
+                margin=dict(l=20, r=20, t=50, b=20), 
                 height=400
             )
             st.plotly_chart(fig_id, use_container_width=True)
@@ -131,22 +137,25 @@ with aba_atendimento:
             
             fig_ad = px.bar(contagem_ad, x='Operadora', y='Quantidade', text='Quantidade',
                             title="Total AD por Operadora", color_discrete_sequence=['#00cc99'])
-            fig_ad.update_traces(textposition='outside')
+            # cliponaxis=False impede que o número do topo seja cortado
+            fig_ad.update_traces(textposition='outside', cliponaxis=False)
             fig_ad.update_layout(
                 title_x=0.5, 
                 xaxis_tickangle=-90, 
-                margin=dict(l=20, r=20, t=40, b=20), 
+                yaxis=dict(range=[0, contagem_ad['Quantidade'].max() * 1.15]), # Dá folga de 15% no topo
+                margin=dict(l=20, r=20, t=50, b=20), 
                 height=400
             )
             st.plotly_chart(fig_ad, use_container_width=True)
         else:
             st.info("Nenhum paciente do tipo 'AD' encontrado.")
 
-    # --- SEÇÃO DE TABELAS DESTRINCHADAS COMPACTAS ---
-    st.markdown("---")
-    st.markdown("<h3 style='text-align: center;'>📋 Detalhe de Pacientes Ativos por Categoria</h3>", unsafe_allow_html=True)
+    # --- SEÇÃO DE TABELAS DESTRINCHADAS FIXAS (Sem Rolagem Lateral) ---
+    st.markdown("<br><hr>", unsafe_allow_html=True)
+    st.markdown("<h3 style='text-align: center; margin-top: 15px; margin-bottom: 20px;'>📋 Detalhe de Pacientes Ativos por Categoria</h3>", unsafe_allow_html=True)
     
-    col_t1, col_t2 = st.columns(2)
+    # Adicionando um espaçamento maior entre as duas colunas de tabelas
+    col_t1, col_vazio, col_t2 = st.columns([1, 0.08, 1])
     colunas_exibicao = ['Paciente', 'Operadora', 'Tipo de Atendimento']
     
     with col_t1:
@@ -154,7 +163,8 @@ with aba_atendimento:
         if not df_id.empty:
             colunas_validas_id = [col for col in colunas_exibicao if col in df_id.columns]
             df_id_exibir = df_id[colunas_validas_id] if colunas_validas_id else df_id
-            st.dataframe(df_id_exibir, use_container_width=True, hide_index=True)
+            # st.table remove o scroll lateral e força a quebra de texto
+            st.table(df_id_exibir.reset_index(drop=True))
         else:
             st.info("Não há pacientes ID ativos.")
             
@@ -163,7 +173,8 @@ with aba_atendimento:
         if not df_ad.empty:
             colunas_validas_add = [col for col in colunas_exibicao if col in df_ad.columns]
             df_ad_exibir = df_ad[colunas_validas_add] if colunas_validas_add else df_ad
-            st.dataframe(df_ad_exibir, use_container_width=True, hide_index=True)
+            # st.table remove o scroll lateral e força a quebra de texto
+            st.table(df_ad_exibir.reset_index(drop=True))
         else:
             st.info("Não há pacientes AD ativos.")
 
