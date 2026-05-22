@@ -22,8 +22,8 @@ GID_ATENDIMENTO = "967937234"
 GID_ALTA = "1201607203"          
 
 LINK_ADMISSAO = f"{BASE_URL}&gid={GID_ADMISSAO}"
-LINK_ATENDIMENTO = f"{BASE_URL}&gid={GID_ATENDIMENTO}"
-LINK_ALTA = f"{BASE_URL}&gid={GID_ALTA}"
+LINK_ATENDIMENTO = f"{BASE_URL}&gid={LINK_ATENDIMENTO}"
+LINK_ALTA = f"{BASE_URL}&gid={LINK_ALTA}"
 
 @st.cache_data(ttl=10)
 def carregar_dados(link_aba):
@@ -112,13 +112,31 @@ with aba_atendimento:
         else:
             st.info("Nenhum paciente do tipo 'AD' encontrado.")
 
+    # --- NOVA SEÇÃO DE TABELAS DESTRINCHADAS ---
     st.markdown("---")
-    st.markdown("### 📋 Detalhamento dos Pacientes em Atendimento")
-    if not df_base_atendimento.empty:
-        colunas_exibicao = ['Paciente', 'Operadora', 'Tipo de Atendimento', 'Filial']
-        colunas_validas = [col for col in colunas_exibicao if col in df_base_atendimento.columns]
-        if colunas_validas:
-            st.dataframe(df_base_atendimento[colunas_validas], use_container_width=True)
+    st.markdown("### 📋 Detalhe de Pacientes Ativos por Categoria")
+    
+    col_t1, col_t2 = st.columns(2)
+    
+    colunas_exibicao = ['Paciente', 'Operadora', 'Tipo de Atendimento']
+    
+    with col_t1:
+        st.markdown("#### 🔵 Internação Domiciliar (ID)")
+        if not df_id.empty:
+            colunas_validas_id = [col for col in colunas_exibicao if col in df_id.columns]
+            df_id_exibir = df_id[colunas_validas_id] if colunas_validas_id else df_id
+            st.dataframe(df_id_exibir, use_container_width=True, hide_index=True)
+        else:
+            st.info("Não há pacientes ID ativos.")
+            
+    with col_t2:
+        st.markdown("#### 🟢 Atendimento Domiciliar (AD)")
+        if not df_ad.empty:
+            colunas_validas_add = [col for col in colunas_exibicao if col in df_ad.columns]
+            df_ad_exibir = df_ad[colunas_validas_add] if colunas_validas_add else df_ad
+            st.dataframe(df_ad_exibir, use_container_width=True, hide_index=True)
+        else:
+            st.info("Não há pacientes AD ativos.")
 
 # --- ABA 2: ADMISSÕES ---
 with aba_admissoes:
@@ -128,14 +146,12 @@ with aba_admissoes:
     else:
         st.info("Não foram registrados dados de admissão para a filial e período informados.")
 
-# --- ABA 3: ALTAS (ATUALIZADA) ---
+# --- ABA 3: ALTAS ---
 with aba_altas:
     st.markdown("### 🔴 Registro Geral de Altas")
-    # Se o DataFrame estiver vazio ou não contiver linhas de dados reais
     if not df_alta.empty and len(df_alta) > 0:
         st.dataframe(df_alta, use_container_width=True)
     else:
-        # Mensagem amigável para o usuário saber que o sistema buscou, mas está zerado
         st.info("Não foram registrados dados de alta para a filial e período informados.")
 
 # --- ABA 4: RESUMO POR CATEGORIA ---
