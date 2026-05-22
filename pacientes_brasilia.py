@@ -3,13 +3,34 @@ import pandas as pd
 import plotly.express as px
 
 # ==============================================================================
-# 1. CONFIGURAÇÃO DA PÁGINA
+# 1. CONFIGURAÇÃO DA PÁGINA E ESTILOS CUSTOMIZADOS (CSS)
 # ==============================================================================
 st.set_page_config(
     page_title="Painel Integrado de Gestão Hospitalar - HM Brasília",
     page_icon="🏥",
     layout="wide",
     initial_sidebar_state="collapsed"
+)
+
+# Injeção de CSS para diminuir as fontes das tabelas e títulos específicos
+st.html(
+    """
+    <style>
+    /* Diminui o tamanho do texto dentro das tabelas do Streamlit */
+    [data-testid="stDataFrame"] table, 
+    [data-testid="stDataFrame"] div, 
+    [data-testid="stDataFrame"] data-grid {
+        font-size: 12px !important;
+    }
+    /* Estilização compacta para títulos secundários */
+    .titulo-compacto {
+        font-size: 18px !important;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+    </style>
+    """
 )
 
 # ==============================================================================
@@ -21,10 +42,9 @@ GID_ADMISSAO = "0"
 GID_ATENDIMENTO = "967937234"   
 GID_ALTA = "1201607203"          
 
-# CORRIGIDO: Agora usando a variável correta (GID_ATENDIMENTO) dentro das chaves!
 LINK_ADMISSAO = f"{BASE_URL}&gid={GID_ADMISSAO}"
 LINK_ATENDIMENTO = f"{BASE_URL}&gid={GID_ATENDIMENTO}"
-LINK_ALTA = f"{BASE_URL}&gid={GID_ALTA}"
+LINK_ALTA = f"{BASE_URL}&gid={LINK_ALTA}"
 
 @st.cache_data(ttl=10)
 def carregar_dados(link_aba):
@@ -54,10 +74,10 @@ total_ad = len(df_ad)
 total_geral = len(df_base_atendimento)
 
 # ==============================================================================
-# 4. CABEÇALHO PRINCIPAL
+# 4. CABEÇALHO PRINCIPAL CENTRALIZADO (image_4f0576.png)
 # ==============================================================================
-st.markdown("# 🏥 Painel Integrado de Gestão Hospitalar")
-st.markdown("### 📍 Filial Atual: **HM - Brasília**")
+st.markdown("<h1 style='text-align: center;'>🏥 Painel Integrado de Gestão Hospitalar</h1>", unsafe_allow_html=True)
+st.markdown("<h3 style='text-align: center;'>📍 Filial Atual: <b>HM - Brasília</b></h3>", unsafe_allow_html=True)
 st.markdown("---")
 
 # ==============================================================================
@@ -71,56 +91,67 @@ aba_atendimento, aba_admissoes, aba_altas, aba_resumo = st.tabs([
 with aba_atendimento:
     col_m1, col_m2, col_m3 = st.columns(3)
     with col_m1:
-        st.markdown("##### Total Todas")
-        st.markdown(f"## {total_geral}")
+        st.markdown("<h5 style='text-align: center;'>Total Todas</h5>", unsafe_allow_html=True)
+        st.markdown(f"<h2 style='text-align: center;'>{total_geral}</h2>", unsafe_allow_html=True)
     with col_m2:
-        st.markdown("##### Internação (ID)")
-        st.markdown(f"## {total_id}")
+        st.markdown("<h5 style='text-align: center;'>Internação (ID)</h5>", unsafe_allow_html=True)
+        st.markdown(f"<h2 style='text-align: center;'>{total_id}</h2>", unsafe_allow_html=True)
     with col_m3:
-        st.markdown("##### Atendimento (AD)")
-        st.markdown(f"## {total_ad}")
+        st.markdown("<h5 style='text-align: center;'>Atendimento (AD)</h5>", unsafe_allow_html=True)
+        st.markdown(f"<h2 style='text-align: center;'>{total_ad}</h2>", unsafe_allow_html=True)
         
     st.markdown("---")
-    st.markdown("### Análise por Operadora")
+    st.markdown("<h3 style='text-align: center;'>Análise por Operadora</h3>", unsafe_allow_html=True)
     
     col_g1, col_g2 = st.columns(2)
     
     with col_g1:
-        st.markdown("#### Total ID por Operadora")
         if not df_id.empty and 'Operadora' in df_id.columns:
             contagem_id = df_id['Operadora'].value_counts().reset_index()
             contagem_id.columns = ['Operadora', 'Quantidade']
             
+            # Título centralizado direto na configuração do gráfico Plotly
             fig_id = px.bar(contagem_id, x='Operadora', y='Quantidade', text='Quantidade',
-                            color_discrete_sequence=['#0055ff'])
+                            title="Total ID por Operadora", color_discrete_sequence=['#0055ff'])
             fig_id.update_traces(textposition='outside')
-            fig_id.update_layout(xaxis_tickangle=-90, margin=dict(l=20, r=20, t=20, b=20), height=400)
+            fig_id.update_layout(
+                title_x=0.5, # Centraliza o título do gráfico
+                xaxis_tickangle=-90, 
+                margin=dict(l=20, r=20, t=40, b=20), 
+                height=400
+            )
             st.plotly_chart(fig_id, use_container_width=True)
         else:
             st.info("Nenhum paciente do tipo 'ID' encontrado.")
             
     with col_g2:
-        st.markdown("#### Total AD por Operadora")
         if not df_ad.empty and 'Operadora' in df_ad.columns:
             contagem_ad = df_ad['Operadora'].value_counts().reset_index()
             contagem_ad.columns = ['Operadora', 'Quantidade']
             
+            # Título centralizado direto na configuração do gráfico Plotly
             fig_ad = px.bar(contagem_ad, x='Operadora', y='Quantidade', text='Quantidade',
-                            color_discrete_sequence=['#00cc99'])
+                            title="Total AD por Operadora", color_discrete_sequence=['#00cc99'])
             fig_ad.update_traces(textposition='outside')
-            fig_ad.update_layout(xaxis_tickangle=-90, margin=dict(l=20, r=20, t=20, b=20), height=400)
+            fig_ad.update_layout(
+                title_x=0.5, # Centraliza o título do gráfico
+                xaxis_tickangle=-90, 
+                margin=dict(l=20, r=20, t=40, b=20), 
+                height=400
+            )
             st.plotly_chart(fig_ad, use_container_width=True)
         else:
             st.info("Nenhum paciente do tipo 'AD' encontrado.")
 
+    # --- SEÇÃO DE TABELAS DESTRINCHADAS COMPACTAS (image_4f0919.jpg) ---
     st.markdown("---")
-    st.markdown("### 📋 Detalhe de Pacientes Ativos por Categoria")
+    st.markdown("<h3 style='text-align: center;'>📋 Detalhe de Pacientes Ativos por Categoria</h3>", unsafe_allow_html=True)
     
     col_t1, col_t2 = st.columns(2)
     colunas_exibicao = ['Paciente', 'Operadora', 'Tipo de Atendimento']
     
     with col_t1:
-        st.markdown("#### 🔵 Internação Domiciliar (ID)")
+        st.markdown("<p class='titulo-compacto'>🔵 Internação Domiciliar (ID)</p>", unsafe_allow_html=True)
         if not df_id.empty:
             colunas_validas_id = [col for col in colunas_exibicao if col in df_id.columns]
             df_id_exibir = df_id[colunas_validas_id] if colunas_validas_id else df_id
@@ -129,7 +160,7 @@ with aba_atendimento:
             st.info("Não há pacientes ID ativos.")
             
     with col_t2:
-        st.markdown("#### 🟢 Atendimento Domiciliar (AD)")
+        st.markdown("<p class='titulo-compacto'>🟢 Atendimento Domiciliar (AD)</p>", unsafe_allow_html=True)
         if not df_ad.empty:
             colunas_validas_add = [col for col in colunas_exibicao if col in df_ad.columns]
             df_ad_exibir = df_ad[colunas_validas_add] if colunas_validas_add else df_ad
@@ -139,7 +170,7 @@ with aba_atendimento:
 
 # --- ABA 2: ADMISSÕES ---
 with aba_admissoes:
-    st.markdown("### 🔵 Registro Geral de Admissões")
+    st.markdown("<h3 style='text-align: center;'>🔵 Registro Geral de Admissões</h3>", unsafe_allow_html=True)
     if not df_admissao.empty and len(df_admissao) > 0:
         st.dataframe(df_admissao, use_container_width=True)
     else:
@@ -147,7 +178,7 @@ with aba_admissoes:
 
 # --- ABA 3: ALTAS ---
 with aba_altas:
-    st.markdown("### 🔴 Registro Geral de Altas")
+    st.markdown("<h3 style='text-align: center;'>🔴 Registro Geral de Altas</h3>", unsafe_allow_html=True)
     if not df_alta.empty and len(df_alta) > 0:
         st.dataframe(df_alta, use_container_width=True)
     else:
@@ -155,7 +186,7 @@ with aba_altas:
 
 # --- ABA 4: RESUMO POR CATEGORIA ---
 with aba_resumo:
-    st.markdown("## 📋 Resumo de Pacientes Ativos por Operadora")
+    st.markdown("<h2 style='text-align: center;'>📋 Resumo de Pacientes Ativos por Operadora</h2>", unsafe_allow_html=True)
     
     col_r1, col_r2, col_r3 = st.columns(3)
     col_r1.metric("Soma Total ID", total_id)
@@ -188,7 +219,7 @@ with aba_resumo:
             'Total Pacientes': tabela_resumo['Total Pacientes'].sum()
         }])
         
-        tabela_final = pd.concat([tabela_resumo, linha_total], ignore_index=True)
+        tabela_final = pd.concat([tabela_resumo, table_total if 'table_total' in locals() else linha_total], ignore_index=True)
         st.dataframe(tabela_final, use_container_width=True)
     else:
         st.info("Sem dados de atendimento para consolidar o resumo de operadoras.")
